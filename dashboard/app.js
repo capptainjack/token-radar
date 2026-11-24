@@ -171,6 +171,7 @@
     if (params.get('category')) state.category = params.get('category');
     if (params.get('chain')) state.chain = params.get('chain');
     if (params.get('tab')) state.tab = params.get('tab');
+    if (params.get('tvl')) state.minTvl = Number(params.get('tvl')) || 0;
     if (params.get('watch') === '1') state.watchOnly = true;
   }
   function writeHash() {
@@ -179,6 +180,7 @@
     if (state.category !== 'all') params.set('category', state.category);
     if (state.chain !== 'all') params.set('chain', state.chain);
     if (state.tab !== 'pre-token') params.set('tab', state.tab);
+    if (state.minTvl) params.set('tvl', String(state.minTvl));
     if (state.watchOnly) params.set('watch', '1');
     if (state.selected) params.set('p', state.selected);
     var next = params.toString();
@@ -278,7 +280,7 @@
       el('option', { value: '500000000', text: 'TVL $500M+', selected: state.minTvl === 500000000 ? 'selected' : null }),
       el('option', { value: '1000000000', text: 'TVL $1B+', selected: state.minTvl === 1000000000 ? 'selected' : null })
     );
-    tvlSel.addEventListener('change', function () { state.minTvl = Number(tvlSel.value); render(); });
+    tvlSel.addEventListener('change', function () { state.minTvl = Number(tvlSel.value); writeHash(); render(); });
     var watch = el('label', { class: 'check' },
       el('input', { type: 'checkbox', checked: state.watchOnly ? 'checked' : null }),
       'Watchlist only'
@@ -339,7 +341,7 @@
         el('button', { class: 'button primary', type: 'button', text: 'Clear filters', onclick: function () { state.q = ''; state.category = 'all'; state.chain = 'all'; state.minTvl = 0; state.watchOnly = false; writeHash(); render(); } })
       ));
     }
-    var max = list[0].implied_value_usd || 1;
+    var max = (DATA.rows[0] && DATA.rows[0].implied_value_usd) || 1;
     var tbody = el('tbody');
     list.forEach(function (r) {
       var tr = el('tr', {
